@@ -2,9 +2,11 @@ package adriano.barbosa.springsecurity.entities;
 
 import jakarta.persistence.*;
 
+
 @Entity
 @Table(name = "tb_roles")
 public class Role {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id")
@@ -27,7 +29,8 @@ public class Role {
         this.name = name;
     }
 
-    public enum Values{
+    public enum Values {
+
         ADMIN(1L),
         BASIC(2L);
 

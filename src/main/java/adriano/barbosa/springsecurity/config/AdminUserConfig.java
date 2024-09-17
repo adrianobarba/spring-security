@@ -15,16 +15,16 @@ import java.util.Set;
 @Configuration
 public class AdminUserConfig implements CommandLineRunner {
 
-    private final RoleRepository roleRepository;
-    private final UserRepository userRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private RoleRepository roleRepository;
+    private UserRepository userRepository;
+    private BCryptPasswordEncoder passwordEncoder;
 
     public AdminUserConfig(RoleRepository roleRepository,
                            UserRepository userRepository,
-                           BCryptPasswordEncoder bCryptPasswordEncoder) {
+                           BCryptPasswordEncoder passwordEncoder) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -36,12 +36,13 @@ public class AdminUserConfig implements CommandLineRunner {
         var userAdmin = userRepository.findByUsername("admin");
 
         userAdmin.ifPresentOrElse(
-                user -> {System.out.println("admin já existe");
-                    },
+                user -> {
+                    System.out.println("admin ja existe");
+                },
                 () -> {
                     var user = new User();
                     user.setUsername("admin");
-                    user.setPassword(bCryptPasswordEncoder.encode("123"));
+                    user.setPassword(passwordEncoder.encode("123"));
                     user.setRoles(Set.of(roleAdmin));
                     userRepository.save(user);
                 }

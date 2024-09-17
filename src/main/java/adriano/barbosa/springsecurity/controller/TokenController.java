@@ -1,7 +1,7 @@
 package adriano.barbosa.springsecurity.controller;
 
-import adriano.barbosa.springsecurity.dto.LoginRequest;
-import adriano.barbosa.springsecurity.dto.LoginResponse;
+import adriano.barbosa.springsecurity.controller.dto.LoginRequest;
+import adriano.barbosa.springsecurity.controller.dto.LoginResponse;
 import adriano.barbosa.springsecurity.entities.Role;
 import adriano.barbosa.springsecurity.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
@@ -21,46 +21,44 @@ import java.util.stream.Collectors;
 public class TokenController {
 
     private final JwtEncoder jwtEncoder;
-
     private final UserRepository userRepository;
-
-    private final BCryptPasswordEncoder bcryptpasswordencoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     public TokenController(JwtEncoder jwtEncoder,
                            UserRepository userRepository,
-                           BCryptPasswordEncoder bCryptPasswordEncoder) {
+                           BCryptPasswordEncoder passwordEncoder) {
         this.jwtEncoder = jwtEncoder;
         this.userRepository = userRepository;
-        this.bcryptpasswordencoder = bCryptPasswordEncoder;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest){
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
 
-       var user = userRepository.findByUsername(loginRequest.username());
+        var user = userRepository.findByUsername(loginRequest.username());
 
-       if(user.isEmpty() || !user.get().isLoginCorrect(loginRequest, bcryptpasswordencoder)){
-          throw new BadCredentialsException("user or password invalid!");
-       }
+        if (user.isEmpty() || !user.get().isLoginCorrect(loginRequest, passwordEncoder)) {
+            throw new BadCredentialsException("user or password is invalid!");
+        }
 
-       var now = Instant.now();
-       var expiresIn = 300L;
+        var now = Instant.now();
+        var expiresIn = 300L;
 
-       var scopes = user.get().getRoles()
-               .stream()
-               .map(Role::getName)
-               .collect(Collectors.joining(""));
+        var scopes = user.get().getRoles()
+                .stream()
+                .map(Role::getName)
+                .collect(Collectors.joining(" "));
 
-       var claims = JwtClaimsSet.builder()
-               .issuer("mybackend")
-               .subject(user.get().getUserId().toString())
-               .issuedAt(now)
-               .expiresAt(now.plusSeconds(expiresIn))
-               .claim("scope", scopes)
-               .build();
+        var claims = JwtClaimsSet.builder()
+                .issuer("mybackend")
+                .subject(user.get().getUserId().toString())
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(expiresIn))
+                .claim("scope", scopes)
+                .build();
 
-       var jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        var jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
 
-       return ResponseEntity.ok(new LoginResponse(jwtValue, expiresIn));
+        return ResponseEntity.ok(new LoginResponse(jwtValue, expiresIn));
     }
 }

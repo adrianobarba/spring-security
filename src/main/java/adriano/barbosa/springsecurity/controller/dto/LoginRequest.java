@@ -1,4 +1,4 @@
-package adriano.barbosa.springsecurity.dto;
+package adriano.barbosa.springsecurity.controller.dto;
 
 public record LoginRequest(String username, String password) {
 }
